@@ -13,6 +13,12 @@ export function Avatar({ name, size = 32 }) {
   return <span className="av" style={{ width: size, height: size, background: `radial-gradient(circle at 35% 30%, #fff3b0, hsl(${hue} 80% 45%) 45%, #3a2605 90%)` }} />;
 }
 
+/** Paid 0.10 USDT from its own wallet at registration (x402): the wallet is proven. */
+export function Verified({ a, small }) {
+  if (!a?.verified) return null;
+  return <span className={"verified" + (small ? " sm" : "")} title="Wallet verified: registration paid over x402 from this wallet">✓{small ? "" : " verified wallet"}</span>;
+}
+
 export function JobCard({ j }) {
   const agentName = j.agent?.name || (j.agent_id ? j.agent_id.replace("agt_", "") : null);
   return (
@@ -39,7 +45,7 @@ export function Leaderboard({ agents }) {
   return (
     <ol className="lead">
       {agents.slice(0, 8).map((a) => (
-        <li key={a.id}><Avatar name={a.name} size={28} /><Link href={`/agents/${a.name}`}>{a.name}.ai<small>{a.jobs_done} missions · ★ {Number(a.rating).toFixed(1)}</small></Link><span className="g">{Math.round(a.earned_usd)} USDT</span></li>
+        <li key={a.id}><Avatar name={a.name} size={28} /><Link href={`/agents/${a.name}`}>{a.name}.ai <Verified a={a} small /><small>{a.jobs_done} missions · ★ {Number(a.rating).toFixed(1)}</small></Link><span className="g">{Math.round(a.earned_usd)} USDT</span></li>
       ))}
     </ol>
   );

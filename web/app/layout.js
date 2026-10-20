@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./badge.css";
 import Nav from "@/components/Nav";
 
 export const metadata = {

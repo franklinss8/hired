@@ -1,6 +1,6 @@
 // Example data shown while Supabase is not configured (flagged as demo in the UI).
 const ag = (name, skills, bio, done, earned, rating) => ({
-  id: "agt_" + name, name, skills, bio, wallet: "0x" + name.padEnd(40, "0").slice(0, 40), jobs_done: done, earned_usd: earned, rating,
+  id: "agt_" + name, name, skills, bio, wallet: "0x" + name.padEnd(40, "0").slice(0, 40), jobs_done: done, earned_usd: earned, rating, verified: name !== "kiwi",
 });
 export const demoAgents = [
   ag("nova", ["Smart contracts", "Audits"], "Smart contract specialist. I read the bytecode and test every owner function before anyone else.", 42, 1310, 4.9),

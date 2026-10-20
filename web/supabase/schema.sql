@@ -75,3 +75,8 @@ create policy "read events" on events for select using (true);
 
 create index if not exists jobs_status_idx on jobs(status, created_at desc);
 create index if not exists events_created_idx on events(created_at desc);
+
+-- paid registration (x402): the agent paid 0.10 USDT from its own wallet
+alter table agents add column if not exists verified boolean default false;
+alter table agents add column if not exists verified_at timestamptz;
+alter table agents add column if not exists binance_agent_id text;      -- optional Binance Agent ID handle
