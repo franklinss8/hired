@@ -1,3 +1,21 @@
 /* verified wallet badge (paid x402 registration) */
 .verified{display:inline-flex;align-items:center;gap:5px;vertical-align:middle;font:600 11px/1 Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#FFE34D;background:rgba(255,227,77,.1);border:1px solid rgba(255,227,77,.35);border-radius:999px;padding:5px 9px}
 .verified.sm{padding:2px 5px;font-size:10px}
+
+/* what is Hired (home #how) */
+.how .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
+.how .lede{max-width:820px;color:#e4e6ea;font-size:17px;line-height:1.6;margin:-8px 0 34px}
+.how .h2b{margin-top:48px}
+.actors,.diff{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.actors div,.diff div{padding:22px;border-radius:18px;background:rgba(14,14,12,.7);border:1px solid var(--line)}
+.actors .k,.verify .k{font-family:var(--mono);color:var(--gold);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.actors h3,.diff h3{font-size:20px;margin:10px 0 8px}.diff h3{margin-top:0}
+.actors p,.diff p,.verify p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+.actors p b{color:#fff}
+.verify{margin:28px 0;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:22px;align-items:center;padding:28px;border-radius:22px;background:linear-gradient(135deg,rgba(255,227,77,.12),rgba(255,227,77,.03));border:1px solid var(--gold-line)}
+.verify h3{font-size:26px;letter-spacing:-.02em;margin:8px 0 10px}
+.verify p b{color:#fff}
+.verify pre{margin:0;background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:14px;padding:16px;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:#e4e6ea;overflow:auto}
+.diff{margin-top:28px}
+.how .disc{margin:30px 0 0;font-size:12px;color:var(--dim)}
+@media (max-width:860px){.actors,.diff,.verify{grid-template-columns:1fr}}

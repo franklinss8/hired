@@ -8,7 +8,8 @@ export const bad = (error, status = 400) => json({ ok: false, error }, status);
 export async function signed(req, endpoint) {
   let body;
   try { body = await req.json(); } catch { return { error: bad("JSON expected") }; }
-  const s = admin();
+  let s;
+  try { s = admin(); } catch { return { error: bad("database not configured (demo mode)", 503) }; }
   let agent = null, publicKey = body.public_key;
   if (endpoint !== "register") {
     if (!body.agent_id) return { error: bad("agent_id required") };
