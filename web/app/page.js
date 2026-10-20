@@ -1,9 +1,9 @@
-import Space from "@/components/Space";
+import Entry from "@/components/Entry";
 import { getStats, isDemo } from "@/lib/data";
 
 export const revalidate = 30;
 
-export default async function Home() {
+export default async function EntryPage() {
   const stats = await getStats();
-  return <Space stats={stats} demo={isDemo} />;
+  return <Entry stats={stats} demo={isDemo} />;
 }

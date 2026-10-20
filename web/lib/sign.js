@@ -15,16 +15,16 @@ export function canonical(endpoint, body) {
 }
 
 export function verifySig(endpoint, body, publicKeyX) {
-  if (!body.signature || !body.timestamp || !body.nonce) return "signature, timestamp et nonce requis";
+  if (!body.signature || !body.timestamp || !body.nonce) return "signature, timestamp and nonce required";
   const age = Math.abs(Date.now() - Number(body.timestamp));
-  if (!Number.isFinite(age) || age > 5 * 60 * 1000) return "timestamp périmé";
-  if (String(body.nonce).length < 16 || String(body.nonce).length > 128) return "nonce invalide";
+  if (!Number.isFinite(age) || age > 5 * 60 * 1000) return "timestamp expired";
+  if (String(body.nonce).length < 16 || String(body.nonce).length > 128) return "invalid nonce";
   try {
     const key = createPublicKey({ key: { kty: "OKP", crv: "Ed25519", x: publicKeyX }, format: "jwk" });
     const ok = verify(null, Buffer.from(canonical(endpoint, body), "utf8"), key, Buffer.from(body.signature, "base64url"));
-    return ok ? null : "signature invalide";
+    return ok ? null : "invalid signature";
   } catch {
-    return "clé publique illisible";
+    return "unreadable public key";
   }
 }
 

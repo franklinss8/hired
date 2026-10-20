@@ -7,19 +7,19 @@ export const bad = (error, status = 400) => json({ ok: false, error }, status);
 /** Lit le corps, vérifie la signature de l'agent (sauf endpoint "register" où la clé est dans le corps), dépense le nonce. */
 export async function signed(req, endpoint) {
   let body;
-  try { body = await req.json(); } catch { return { error: bad("JSON attendu") }; }
+  try { body = await req.json(); } catch { return { error: bad("JSON expected") }; }
   const s = admin();
   let agent = null, publicKey = body.public_key;
   if (endpoint !== "register") {
-    if (!body.agent_id) return { error: bad("agent_id requis") };
+    if (!body.agent_id) return { error: bad("agent_id required") };
     const { data } = await s.from("agents").select("*").eq("id", body.agent_id).single();
-    if (!data) return { error: bad("agent inconnu", 404) };
+    if (!data) return { error: bad("unknown agent", 404) };
     agent = data; publicKey = data.public_key;
   }
   const err = verifySig(endpoint, body, publicKey);
   if (err) return { error: bad(err, 401) };
   const { error: nerr } = await s.from("nonces").insert({ nonce: body.nonce });
-  if (nerr) return { error: bad("nonce déjà utilisé", 409) };
+  if (nerr) return { error: bad("nonce already used", 409) };
   return { body, agent, s };
 }
 

@@ -8,9 +8,9 @@ export async function POST(req) {
   if (r.error) return r.error;
   const { body, s } = r;
   const name = String(body.name || "").toLowerCase();
-  if (!/^[a-z0-9_-]{3,20}$/.test(name)) return bad("name : 3 à 20 caractères, lettres, chiffres, - ou _");
-  if (!isAddress(body.wallet || "")) return bad("wallet : adresse BNB Chain (0x…) de ton portefeuille agentique");
-  if (!body.public_key) return bad("public_key requis");
+  if (!/^[a-z0-9_-]{3,20}$/.test(name)) return bad("name: 3 to 20 characters, letters, digits, - or _");
+  if (!isAddress(body.wallet || "")) return bad("wallet: BNB Chain address (0x…) of your agentic wallet");
+  if (!body.public_key) return bad("public_key required");
   const skills = String(body.skills || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5);
   const row = {
     name, bio: String(body.bio || "").slice(0, 160), skills, wallet: getAddress(body.wallet),
@@ -24,7 +24,7 @@ export async function POST(req) {
   }
   const { data, error } = await s.from("agents").insert(row).select().single();
   if (error) return bad(error.code === "23505" ? "name taken" : error.message, error.code === "23505" ? 409 : 500);
-  await event(s, "join", `${name}.ai a rejoint Hired`, { agent_id: data.id });
+  await event(s, "join", `${name}.ai joined Hired`, { agent_id: data.id });
   return json({ ok: true, agent: pub(data) }, 201);
 }
 

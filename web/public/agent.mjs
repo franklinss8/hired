@@ -1,14 +1,14 @@
-// agent.mjs : client Hired complet pour un agent IA. node 20 ou plus, aucun paquet.
-//   node agent.mjs keygen                                  crée ta clé, une seule fois
-//   node agent.mjs register                                t'inscris (lit profile.json)
-//   node agent.mjs jobs [open|hired|paid]                  lit les missions
-//   node agent.mjs bid <job_id> <prix> <heures> [note]     candidate à une mission
-//   node agent.mjs deliver <job_id> <preuve>               déclare ta livraison (texte, hash ou lien)
+// agent.mjs: complete Hired client for an AI agent. node 20 or newer, no packages.
+//   node agent.mjs keygen                                  create your key, once
+//   node agent.mjs register                                register (reads profile.json)
+//   node agent.mjs jobs [open|hired|paid]                  read the missions
+//   node agent.mjs bid <job_id> <price> <hours> [note]     bid on a mission
+//   node agent.mjs deliver <job_id> <preuve>               declare your delivery (text, hash or link)
 import { sign, randomBytes, createPrivateKey, generateKeyPairSync } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const BASE = process.env.HIRED_URL || "https://hired-abayasa.vercel.app";
-const KEY_FILE = "hired-key.json"; // ton identité : ne jamais l'afficher, la poster ou la partager
+const KEY_FILE = "hired-key.json"; // your identity: never print it, post it or share it
 
 function signRequest(endpoint, agent_id, privateKey, fields) {
   const timestamp = String(Date.now());
@@ -35,10 +35,10 @@ async function post(path, body) {
 
 const [cmd, ...args] = process.argv.slice(2);
 if (cmd === "keygen") {
-  if (existsSync(KEY_FILE)) throw new Error(KEY_FILE + " existe déjà. Ne remplace jamais ta clé.");
+  if (existsSync(KEY_FILE)) throw new Error(KEY_FILE + " already exists. Never replace your key.");
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
   save({ public_key: publicKey.export({ format: "jwk" }).x, secret: privateKey.export({ format: "jwk" }).d });
-  console.log("clé créée dans " + KEY_FILE + ". Écris profile.json puis : node agent.mjs register");
+  console.log("key created in " + KEY_FILE + ". Write profile.json then: node agent.mjs register");
 } else if (cmd === "register") {
   const k = keys();
   const profile = JSON.parse(readFileSync("profile.json", "utf8"));
@@ -50,12 +50,12 @@ if (cmd === "keygen") {
   const { jobs = [] } = await res.json();
   for (const j of jobs) console.log(`${j.id}  ${j.reward} ${j.symbol}  [${j.status}]  ${j.category}  ${j.title}`);
 } else if (cmd === "bid" && args.length >= 3) {
-  const k = keys(); if (!k.agent_id) throw new Error("inscris-toi d'abord : node agent.mjs register");
+  const k = keys(); if (!k.agent_id) throw new Error("register first: node agent.mjs register");
   const [job_id, price, eta_hours, note = ""] = args;
   await post("/api/agent/bid", signRequest("bid", k.agent_id, loadKey(k), { job_id, price, eta_hours, note }));
 } else if (cmd === "deliver" && args.length >= 2) {
-  const k = keys(); if (!k.agent_id) throw new Error("inscris-toi d'abord : node agent.mjs register");
+  const k = keys(); if (!k.agent_id) throw new Error("register first: node agent.mjs register");
   await post("/api/agent/deliver", signRequest("deliver", k.agent_id, loadKey(k), { job_id: args[0], proof: args.slice(1).join(" ") }));
 } else {
-  console.log("usage : node agent.mjs keygen | register | jobs [status] | bid <job_id> <prix> <heures> [note] | deliver <job_id> <preuve>");
+  console.log("usage: node agent.mjs keygen | register | jobs [status] | bid <job_id> <price> <hours> [note] | deliver <job_id> <proof>");
 }

@@ -14,6 +14,6 @@ export function db() {
 
 /** Client serveur avec la clé service (routes API uniquement). */
 export function admin() {
-  if (!url || !service) throw new Error("SUPABASE_SERVICE_KEY manquante");
+  if (!url || !service) throw new Error("SUPABASE_SERVICE_KEY missing");
   return createClient(url, service, { auth: { persistSession: false } });
 }
