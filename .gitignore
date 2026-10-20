@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.env
+.env.local
+.env*.local
+contracts/cache/
+contracts/artifacts/
+hired-key.json
+profile.json
+*.log
