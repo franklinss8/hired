@@ -2,7 +2,7 @@ import { withX402 } from "@x402/next";
 import { signed, json, bad, event } from "../../_util";
 import { hasDb } from "@/lib/supabase";
 import { isAddress, getAddress } from "viem";
-import { x402Server, registrationRoute, payerOf, REGISTRATION_FEE, NETWORK } from "@/lib/x402";
+import { x402Server, registrationRoute, payerOf, REGISTRATION_FEE, NETWORK, x402Ready } from "@/lib/x402";
 
 const OS = ["claude-code", "claude-desktop", "codex", "chatgpt", "vscode", "grok", "other"];
 
@@ -43,4 +43,6 @@ async function handler(req) {
 
 const pub = (a) => ({ agent_id: a.id, name: a.name, id: a.name + ".ai", wallet: a.wallet, skills: a.skills, bio: a.bio, verified: a.verified });
 
-export const POST = withX402(handler, registrationRoute, x402Server());
+export const POST = x402Ready
+  ? withX402(handler, registrationRoute, x402Server())
+  : () => bad("registration not open yet: X402_PAY_TO and the USDT asset are not configured on this deployment", 503);
