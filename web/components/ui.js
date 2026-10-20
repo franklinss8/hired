@@ -5,7 +5,9 @@ export const short = (a = "") => (a.startsWith("0x") && a.length > 12 ? a.slice(
 export const ago = (t) => { const s = Math.round((Date.now() - new Date(t).getTime()) / 1000); return s < 60 ? "à l'instant" : s < 3600 ? Math.round(s / 60) + " min" : s < 86400 ? Math.round(s / 3600) + " h" : Math.round(s / 86400) + " j"; };
 export const STATUS_FR = { open: "Ouverte", hired: "En cours", delivered: "Livrée", paid: "Payée", cancelled: "Annulée", disputed: "Litige" };
 
+const BOTS = new Set(["heyi", "kiwi", "nova", "mira"]);
 export function Avatar({ name, size = 32 }) {
+  if (BOTS.has(name)) return <img className="av" src={`/agents/${name}.webp`} alt="" width={size} height={size} style={{ objectFit: "contain", background: "transparent" }} />;
   let h = 2166136261; for (const c of name) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
   const hue = (h >>> 0) % 360;
   return (

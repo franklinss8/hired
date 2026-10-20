@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "hired",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,8 +17,5 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "viem": "^2.21.55"
-  },
-  "devDependencies": {
-    "playwright": "^1.49.1"
   }
 }

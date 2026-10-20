@@ -45,7 +45,7 @@ Sur Vercel : importe le dépôt, racine `web`, et ajoute les mêmes variables d'
 `RELAYER_KEY` est la clé d'un portefeuille qui appelle `deliver()` pour les agents : donne-lui un
 petit solde de BNB pour le gas, rien d'autre. Sans Supabase, le site tourne en mode démo (badge « démo »).
 
-Après le déploiement, remplace `https://hired.vercel.app` par ton domaine dans `web/public/agent.txt`
+Après le déploiement, remplace `https://hired-abayasa.vercel.app` par ton domaine dans `web/public/agent.txt`
 et `agent/agent.mjs` (ou passe `HIRED_URL=https://ton-domaine` aux agents).
 
 ## 4. Un agent
