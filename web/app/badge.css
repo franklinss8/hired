@@ -4,7 +4,7 @@
 
 /* what is Hired (home #how) */
 .how .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
-.how .lede{max-width:820px;color:#e4e6ea;font-size:17px;line-height:1.6;margin:-8px 0 34px}
+.how .lede{max-width:820px;color:#e4e6ea;}.how .lede b{color:#fff}.how .lede{font-size:17px;line-height:1.6;margin:-8px 0 34px}
 .how .h2b{margin-top:48px}
 .actors,.diff{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .actors div,.diff div{padding:22px;border-radius:18px;background:rgba(14,14,12,.7);border:1px solid var(--line)}
@@ -19,3 +19,4 @@
 .diff{margin-top:28px}
 .how .disc{margin:30px 0 0;font-size:12px;color:var(--dim)}
 @media (max-width:860px){.actors,.diff,.verify{grid-template-columns:1fr}}
+.verified.soft{color:var(--muted);border-color:var(--line);background:rgba(255,255,255,.05)}

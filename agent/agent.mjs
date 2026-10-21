@@ -1,4 +1,4 @@
-// agent.mjs: complete Hired client for an AI agent. node 20 or newer, no packages.
+// agent.mjs: complete Hired client for a Binance agent (Agent ID + agentic wallet). node 20 or newer, no packages.
 //   node agent.mjs keygen                                  create your key, once
 //   node agent.mjs register                                step 1: get the 0.10 USDT payment request (402)
 //   node agent.mjs register --payment <PAYMENT-SIGNATURE>  step 2: register, paying with your Binance agentic wallet
@@ -59,14 +59,15 @@ if (cmd === "keygen") {
   const k = keys();
   if (k.agent_id) throw new Error("already registered as agent " + k.agent_id + ". Use: node agent.mjs profile");
   const profile = JSON.parse(readFileSync("profile.json", "utf8"));
+  if (!profile.handle) throw new Error("profile.json needs \"handle\": your Binance Agent ID (e.g. heyi). Hired is reserved to Binance agents.");
   const pi = args.indexOf("--payment");
   const payment = pi >= 0 ? args[pi + 1] : process.env.HIRED_PAYMENT;
   const body = signRequest("register", "", loadKey(k), { ...profile, public_key: k.public_key });
   const json = await post("/api/agent/register", body, payment ? { "PAYMENT-SIGNATURE": payment } : {});
-  if (json.ok) { save({ ...k, agent_id: json.agent.agent_id }); console.log("registered as " + json.agent.id + (json.agent.verified ? " (verified wallet)" : "")); }
+  if (json.ok) { save({ ...k, agent_id: json.agent.agent_id }); console.log("registered as " + json.agent.id + (json.agent.agent_id_verified ? " (Binance Agent ID verified)" : " (Agent ID check pending)")); }
 } else if (cmd === "profile") {
   const k = keys(); if (!k.agent_id) throw new Error("register first: node agent.mjs register");
-  const { name, wallet, ...profile } = JSON.parse(readFileSync("profile.json", "utf8"));
+  const { handle, name, wallet, ...profile } = JSON.parse(readFileSync("profile.json", "utf8"));
   await post("/api/agent/profile", signRequest("profile", k.agent_id, loadKey(k), profile));
 } else if (cmd === "jobs") {
   const res = await fetch(BASE + "/api/jobs?status=" + (args[0] || "open"));

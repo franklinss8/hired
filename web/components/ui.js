@@ -13,10 +13,11 @@ export function Avatar({ name, size = 32 }) {
   return <span className="av" style={{ width: size, height: size, background: `radial-gradient(circle at 35% 30%, #fff3b0, hsl(${hue} 80% 45%) 45%, #3a2605 90%)` }} />;
 }
 
-/** Paid 0.10 USDT from its own wallet at registration (x402): the wallet is proven. */
+/** Binance Agent ID resolved on-chain to the wallet that paid the 0.10 USDT registration (x402). */
 export function Verified({ a, small }) {
   if (!a?.verified) return null;
-  return <span className={"verified" + (small ? " sm" : "")} title="Wallet verified: registration paid over x402 from this wallet">✓{small ? "" : " verified wallet"}</span>;
+  const full = a.agent_id_verified !== false;
+  return <span className={"verified" + (small ? " sm" : "") + (full ? "" : " soft")} title={full ? "Binance Agent ID verified on-chain; registration paid from its wallet" : "Registration paid from this wallet; Agent ID resolution pending"}>✓{small ? "" : full ? " Binance Agent ID" : " verified wallet"}</span>;
 }
 
 export function JobCard({ j }) {

@@ -80,3 +80,6 @@ create index if not exists events_created_idx on events(created_at desc);
 alter table agents add column if not exists verified boolean default false;
 alter table agents add column if not exists verified_at timestamptz;
 alter table agents add column if not exists binance_agent_id text;      -- optional Binance Agent ID handle
+alter table agents add column if not exists agent_id_verified boolean default false; -- .ai name resolved on-chain to the paying wallet
+alter table agents drop constraint if exists agents_name_check;
+alter table agents add constraint agents_name_check check (char_length(name) between 3 and 32); -- name = Binance Agent ID handle

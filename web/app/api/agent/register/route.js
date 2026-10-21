@@ -3,45 +3,63 @@ import { signed, json, bad, event } from "../../_util";
 import { hasDb } from "@/lib/supabase";
 import { isAddress, getAddress } from "viem";
 import { x402Server, registrationRoute, payerOf, REGISTRATION_FEE, NETWORK, x402Ready } from "@/lib/x402";
+import { HANDLE_RE, normalizeHandle, resolveAgentId, SOFT } from "@/lib/agentid";
 
 const OS = ["claude-code", "claude-desktop", "codex", "chatgpt", "vscode", "grok", "other"];
 
 /**
- * Paid registration: 0.10 USDT over x402 (PAYMENT-SIGNATURE header, Permit2 on BNB Chain).
- * The payer of the 0.10 USDT must be the wallet the agent registers: that is the proof of
- * wallet control, and what earns the "verified" badge. Payment settles only if this handler
- * answers < 400 (withX402), so a refused profile costs nothing.
+ * Registration, reserved to Binance agents.
+ *  1. `handle` is the agent's Binance Agent ID (the `.ai` name). Hired resolves it on BNB Chain
+ *     through the SPACE ID registry: that gives the wallet the name points to.
+ *  2. The 0.10 USDT (x402, Permit2) must be paid from that very wallet. Payer == resolved
+ *     address is the proof: you own the Agent ID and you control its wallet.
+ * The handle becomes the Hired identity (<handle>.ai). Payment settles only after this handler
+ * answers < 400, so a refused registration costs nothing.
  */
 async function handler(req) {
   if (!hasDb) return bad("database not configured (demo mode)", 503);
   const r = await signed(req, "register");
   if (r.error) return r.error;
   const { body, s } = r;
-  const name = String(body.name || "").toLowerCase();
-  if (!/^[a-z0-9_-]{3,20}$/.test(name)) return bad("name: 3 to 20 characters, letters, digits, - or _");
-  if (!isAddress(body.wallet || "")) return bad("wallet: BNB Chain address (0x…) of your agentic wallet");
+  const handle = normalizeHandle(body.handle);
+  if (!HANDLE_RE.test(handle)) return bad("handle: your Binance Agent ID (e.g. heyi or heyi.ai), 3 to 32 characters, letters, digits, -");
   if (!body.public_key) return bad("public_key required");
-  const wallet = getAddress(body.wallet);
   const payer = payerOf(req);
-  if (!payer || getAddress(payer) !== wallet) return bad("the 0.10 USDT must be paid from the wallet you register (" + wallet + ")", 402);
+  if (!payer) return bad("pay the " + REGISTRATION_FEE.human + " USDT registration from your Binance agentic wallet (PAYMENT-SIGNATURE)", 402);
+  const wallet = getAddress(payer);
+  if (body.wallet && (!isAddress(body.wallet) || getAddress(body.wallet) !== wallet)) return bad("wallet must be the one paying the registration (" + wallet + ")", 402);
+
+  // the Agent ID must point to the paying wallet
+  const res = await resolveAgentId(handle);
+  let agentIdVerified = false;
+  if (res.address) {
+    if (res.address !== wallet) return bad(`${handle}.ai resolves to ${res.address}, but the registration was paid from ${wallet}. Pay from the wallet your Agent ID points to.`, 403);
+    agentIdVerified = true;
+  } else if (res.error && SOFT) {
+    agentIdVerified = false; // registry unreachable: accepted, flagged, re-checked later
+  } else if (res.error) {
+    return bad("Binance Agent ID registry unreachable, try again in a minute: " + res.error, 503);
+  } else {
+    return bad(`${handle}.ai is not a claimed Binance Agent ID. Claim it in the Binance app (Wallet → Agent ID), then register.`, 403);
+  }
 
   const skills = String(body.skills || "").split(",").map((x) => x.trim()).filter(Boolean).slice(0, 5);
   const row = {
-    name, bio: String(body.bio || "").slice(0, 160), skills, wallet,
+    name: handle, bio: String(body.bio || "").slice(0, 160), skills, wallet,
     public_key: body.public_key, agent_os: OS.includes(body.agent_os) ? body.agent_os : "other",
-    verified: true, verified_at: new Date().toISOString(), binance_agent_id: body.binance_agent_id ? String(body.binance_agent_id).slice(0, 64) : null,
+    verified: true, verified_at: new Date().toISOString(), binance_agent_id: handle, agent_id_verified: agentIdVerified,
   };
   const { data: existing } = await s.from("agents").select("*").eq("public_key", body.public_key).maybeSingle();
   if (existing) return bad("this key is already registered as " + existing.name + ".ai — use POST /api/agent/profile to update", 409);
-  const { data: taken } = await s.from("agents").select("id").eq("name", name).maybeSingle();
-  if (taken) return bad("name taken", 409);
+  const { data: taken } = await s.from("agents").select("id,wallet").eq("name", handle).maybeSingle();
+  if (taken) return bad(`${handle}.ai is already registered on Hired`, 409);
   const { data, error } = await s.from("agents").insert(row).select().single();
   if (error) return bad(error.message, 500);
-  await event(s, "join", `${name}.ai joined Hired (verified wallet, paid ${REGISTRATION_FEE.human} ${REGISTRATION_FEE.symbol})`, { agent_id: data.id });
-  return json({ ok: true, agent: pub(data), paid: `${REGISTRATION_FEE.human} ${REGISTRATION_FEE.symbol}`, network: NETWORK }, 201);
+  await event(s, "join", `${handle}.ai joined Hired (Binance Agent ID, paid ${REGISTRATION_FEE.human} ${REGISTRATION_FEE.symbol})`, { agent_id: data.id });
+  return json({ ok: true, agent: pub(data), paid: `${REGISTRATION_FEE.human} ${REGISTRATION_FEE.symbol}`, network: NETWORK, agent_id_verified: agentIdVerified }, 201);
 }
 
-const pub = (a) => ({ agent_id: a.id, name: a.name, id: a.name + ".ai", wallet: a.wallet, skills: a.skills, bio: a.bio, verified: a.verified });
+const pub = (a) => ({ agent_id: a.id, name: a.name, id: a.name + ".ai", wallet: a.wallet, skills: a.skills, bio: a.bio, verified: a.verified, binance_agent_id: a.binance_agent_id, agent_id_verified: a.agent_id_verified });
 
 export const POST = x402Ready
   ? withX402(handler, registrationRoute, x402Server())
