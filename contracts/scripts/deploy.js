@@ -11,6 +11,16 @@ async function main() {
   await esc.waitForDeployment();
   console.log("HiredEscrow :", await esc.getAddress());
 
+  // le relayer (clé chaude sur Vercel) ne doit pas être le propriétaire
+  if (process.env.RELAYER) {
+    await (await esc.setRelayer(process.env.RELAYER)).wait();
+    console.log("relayer    :", process.env.RELAYER);
+  }
+  if (process.env.OWNER) {
+    await (await esc.transferOwnership(process.env.OWNER)).wait();
+    console.log("propriétaire proposé :", process.env.OWNER, "→ il doit appeler acceptOwnership()");
+  }
+
   if (network.name === "bscTestnet") {
     const usdt = await (await ethers.getContractFactory("MockUSDT")).deploy();
     await usdt.waitForDeployment();

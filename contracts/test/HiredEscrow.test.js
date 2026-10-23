@@ -85,4 +85,19 @@ describe("HiredEscrow", () => {
     await expect(esc.connect(poster).setFee(1, fees.address)).to.be.revertedWithCustomError(esc, "NotOwner");
     await expect((await ethers.getContractFactory("HiredEscrow")).deploy(fees.address, 501)).to.be.revertedWith("fee too high");
   });
+
+  it("refuse un destinataire de frais nul (bloquerait les paiements USDT)", async () => {
+    await expect((await ethers.getContractFactory("HiredEscrow")).deploy(ethers.ZeroAddress, 200)).to.be.revertedWith("fee recipient required");
+    await expect(esc.connect(owner).setFee(200, ethers.ZeroAddress)).to.be.revertedWith("fee recipient required");
+  });
+
+  it("transfert de propriété en deux étapes (multisig)", async () => {
+    await esc.connect(owner).transferOwnership(fees.address);
+    expect(await esc.owner()).to.equal(owner.address);
+    await expect(esc.connect(agent).acceptOwnership()).to.be.revertedWithCustomError(esc, "NotOwner");
+    await expect(esc.connect(fees).acceptOwnership()).to.emit(esc, "OwnershipTransferred").withArgs(owner.address, fees.address);
+    expect(await esc.owner()).to.equal(fees.address);
+    expect(await esc.pendingOwner()).to.equal(ethers.ZeroAddress);
+    await expect(esc.connect(owner).setFee(100, fees.address)).to.be.revertedWithCustomError(esc, "NotOwner");
+  });
 });

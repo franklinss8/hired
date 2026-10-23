@@ -30,6 +30,8 @@ contract HiredEscrow {
     uint16 public constant MAX_FEE_BPS = 500; // 5 % max, garde-fou
 
     address public owner;
+    /// @notice Propriétaire proposé, effectif après acceptOwnership() (prévu pour un multisig).
+    address public pendingOwner;
     /// @notice Relayer Hired : peut déclarer une livraison ou réclamer POUR un agent
     ///         (les portefeuilles agentiques ne savent pas toujours appeler un contrat).
     ///         Il ne peut jamais rediriger les fonds : ils vont à l'agent embauché ou au poster.
@@ -48,6 +50,9 @@ contract HiredEscrow {
     event Disputed(uint256 indexed id, address by);
     event DisputeResolved(uint256 indexed id, uint256 toAgent, uint256 toPoster);
     event FeeUpdated(uint16 feeBps, address recipient);
+    event RelayerUpdated(address relayer);
+    event OwnershipTransferStarted(address indexed from, address indexed to);
+    event OwnershipTransferred(address indexed from, address indexed to);
 
     error NotPoster();
     error NotAgent();
@@ -62,6 +67,8 @@ contract HiredEscrow {
 
     constructor(address _feeRecipient, uint16 _feeBps) {
         require(_feeBps <= MAX_FEE_BPS, "fee too high");
+        // un transfer ERC20 vers address(0) revert : tous les paiements USDT seraient bloqués
+        require(_feeRecipient != address(0), "fee recipient required");
         owner = msg.sender;
         relayer = msg.sender;
         feeRecipient = _feeRecipient;
@@ -178,13 +185,27 @@ contract HiredEscrow {
 
     function setFee(uint16 _feeBps, address _recipient) external onlyOwner {
         require(_feeBps <= MAX_FEE_BPS, "fee too high");
+        require(_recipient != address(0), "fee recipient required");
         feeBps = _feeBps;
         feeRecipient = _recipient;
         emit FeeUpdated(_feeBps, _recipient);
     }
 
-    function setRelayer(address r) external onlyOwner { relayer = r; }
-    function transferOwnership(address to) external onlyOwner { owner = to; }
+    function setRelayer(address r) external onlyOwner { relayer = r; emit RelayerUpdated(r); }
+
+    /// @notice Étape 1 : propose un nouveau propriétaire. Une faute de frappe ne perd plus le contrat.
+    function transferOwnership(address to) external onlyOwner {
+        pendingOwner = to;
+        emit OwnershipTransferStarted(owner, to);
+    }
+
+    /// @notice Étape 2 : le propriétaire proposé (ex. un Safe) accepte.
+    function acceptOwnership() external {
+        if (msg.sender != pendingOwner) revert NotOwner();
+        emit OwnershipTransferred(owner, msg.sender);
+        owner = msg.sender;
+        pendingOwner = address(0);
+    }
 
     // ---------- interne ----------
 

@@ -1,6 +1,6 @@
 import { signed, json, bad, event } from "../../_util";
 import { looksLikeSecret } from "@/lib/sign";
-import { abi, ESCROW, chain } from "@/lib/escrow";
+import { abi, ESCROW, chain, publicClient } from "@/lib/escrow";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -17,15 +17,18 @@ export async function POST(req) {
   if (proof.length < 1) return bad("proof required: the deliverable, a hash or a link");
   if (looksLikeSecret(proof)) return bad("that looks like a secret. never post keys, tokens or seed phrases");
 
-  let tx = null;
-  if (process.env.RELAYER_KEY && job.onchain_id != null) {
-    try {
-      const account = privateKeyToAccount(process.env.RELAYER_KEY);
-      const wc = createWalletClient({ account, chain, transport: http(process.env.BSC_RPC || undefined) });
-      tx = await wc.writeContract({ address: ESCROW, abi, functionName: "deliver", args: [BigInt(job.onchain_id), proof.slice(0, 200)] });
-    } catch (e) {
-      return bad("on-chain delivery refused: " + (e.shortMessage || e.message), 502);
-    }
+  // sans deliver() on-chain, les 48 h ne démarrent jamais et claim() reste impossible : on refuse
+  if (!process.env.RELAYER_KEY) return bad("delivery relayer not configured on this deployment", 503);
+  if (job.onchain_id == null) return bad("mission not on-chain yet", 409);
+  let tx;
+  try {
+    const account = privateKeyToAccount(process.env.RELAYER_KEY);
+    const wc = createWalletClient({ account, chain, transport: http(process.env.BSC_RPC || undefined) });
+    tx = await wc.writeContract({ address: ESCROW, abi, functionName: "deliver", args: [BigInt(job.onchain_id), proof.slice(0, 200)] });
+    const rc = await publicClient().waitForTransactionReceipt({ hash: tx, timeout: 60_000 });
+    if (rc.status !== "success") return bad("on-chain delivery reverted", 502);
+  } catch (e) {
+    return bad("on-chain delivery refused: " + (e.shortMessage || e.message), 502);
   }
   await s.from("jobs").update({ status: "delivered", proof, delivered_at: new Date().toISOString() }).eq("id", job.id);
   await event(s, "deliver", `${agent.name}.ai delivered “${job.title.slice(0, 40)}…”`, { job_id: job.id, agent_id: agent.id });
