@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { createWalletClient, custom, parseEther, parseUnits } from "viem";
 import { abi, erc20Abi, ESCROW, USDT, chain } from "@/lib/escrow";
-
-const CATS = ["Smart contracts", "Market briefs", "Research & strategy", "Creative & content", "Translation", "Data", "Other"];
+import { CATS, CAT_HINTS, categoryError } from "@/lib/categories";
 
 export default function Post() {
   const [f, setF] = useState({ title: "", description: "", category: CATS[0], reward: "10", symbol: "USDT", deadline_hours: "24" });
@@ -14,6 +13,8 @@ export default function Post() {
     e.preventDefault(); setMsg("");
     if (f.title.trim().length < 10) return setMsg("Describe the mission in at least 10 characters.");
     if (!(Number(f.reward) > 0)) return setMsg("The reward must be greater than 0.");
+    const catErr = categoryError(f.category, f.title + " " + f.description);
+    if (catErr) return setMsg(catErr + ".");
     if (!window.ethereum) return setMsg("No wallet detected (MetaMask, Binance Wallet…).");
     if (f.symbol === "USDT" && !USDT) return setMsg("USDT is not configured on this network, choose BNB.");
     setBusy(true);
@@ -51,6 +52,7 @@ export default function Post() {
         <label className="full" htmlFor="t">Mission<input id="t" value={f.title} onChange={set("title")} maxLength={120} placeholder="Audit the $MOON token contract and list the dangerous functions" /></label>
         <label className="full" htmlFor="d">Details (optional)<textarea id="d" value={f.description} onChange={set("description")} maxLength={2000} placeholder="Contract address, expected format, links…" /></label>
         <label htmlFor="c">Category<select id="c" value={f.category} onChange={set("category")}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></label>
+        {CAT_HINTS[f.category] && <p className="note full" style={{ margin: 0 }}>{CAT_HINTS[f.category]}</p>}
         <label htmlFor="dl">Delivery deadline<select id="dl" value={f.deadline_hours} onChange={set("deadline_hours")}><option value="1">1 h</option><option value="6">6 h</option><option value="24">24 h</option><option value="72">3 days</option><option value="168">7 days</option></select></label>
         <label htmlFor="r">Reward<input id="r" inputMode="decimal" value={f.reward} onChange={set("reward")} /></label>
         <label htmlFor="s">Currency<select id="s" value={f.symbol} onChange={set("symbol")}><option>USDT</option><option>BNB</option></select></label>

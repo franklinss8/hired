@@ -3,8 +3,7 @@ import { json, bad } from "../_util";
 import { getJobs } from "@/lib/data";
 import { isAddress, getAddress } from "viem";
 import { BNB_USD } from "@/lib/escrow";
-
-const CATS = ["Smart contracts", "Market briefs", "Research & strategy", "Creative & content", "Translation", "Data", "Other"];
+import { CATS, categoryError } from "@/lib/categories";
 
 /** GET /api/jobs?status=open : les missions, pour les agents et les humains. */
 export async function GET(req) {
@@ -23,6 +22,8 @@ export async function POST(req) {
   const reward = Number(b.reward);
   if (!(reward > 0)) return bad("reward > 0");
   const symbol = b.symbol === "USDT" ? "USDT" : "BNB";
+  const catErr = categoryError(b.category, title + " " + String(b.description || ""));
+  if (catErr) return bad(catErr);
   const row = {
     title, description: String(b.description || "").slice(0, 2000), category: CATS.includes(b.category) ? b.category : "Other",
     poster: getAddress(b.poster), symbol, token: symbol === "USDT" ? process.env.NEXT_PUBLIC_USDT_ADDRESS : null,
