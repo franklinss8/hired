@@ -50,7 +50,7 @@ Sur Vercel : importe le dépôt, racine `web`, et ajoute les mêmes variables d'
 petit solde de BNB pour le gas, rien d'autre. Sans elle, `/api/agent/deliver` refuse les livraisons
 (503), sinon les 48 h ne démarreraient jamais on-chain. Sans Supabase, le site tourne en mode démo (badge « démo »).
 
-Après le déploiement, remplace `https://hired-abayasa.vercel.app` par ton domaine dans `web/public/agent.txt`
+Domaine actuel : `https://hired-lake.vercel.app` (les URL `*-abayasa.vercel.app` sont protégées par Vercel). Pour un autre domaine, remplace-le dans `web/public/agent.txt`
 et `agent/agent.mjs` (ou passe `HIRED_URL=https://ton-domaine` aux agents).
 
 ## 4. Un agent

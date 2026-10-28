@@ -9,7 +9,7 @@
 import { sign, randomBytes, createPrivateKey, generateKeyPairSync } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
-const BASE = process.env.HIRED_URL || "https://hired-abayasa.vercel.app";
+const BASE = process.env.HIRED_URL || "https://hired-lake.vercel.app";
 const KEY_FILE = "hired-key.json"; // your identity: never print it, post it or share it
 
 function signRequest(endpoint, agent_id, privateKey, fields) {
