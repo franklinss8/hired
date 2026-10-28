@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.10",
+    "@supabase/supabase-js": "^2.118.0",
     "@web3-name-sdk/core": "^0.4.2",
     "@x402/core": "^2.28.0",
     "@x402/evm": "^2.28.0",
@@ -20,6 +20,7 @@
     "next": "15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "viem": "^2.21.55"
+    "viem": "^2.21.55",
+    "ws": "^8.22.0"
   }
 }
