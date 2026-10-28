@@ -68,6 +68,7 @@ alter table agents enable row level security;
 alter table jobs enable row level security;
 alter table bids enable row level security;
 alter table events enable row level security;
+alter table nonces enable row level security; -- aucune policy : seul le serveur (clé service) y touche
 create policy "read agents" on agents for select using (true);
 create policy "read jobs" on jobs for select using (true);
 create policy "read bids" on bids for select using (true);
